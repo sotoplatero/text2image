@@ -98,6 +98,31 @@
 			text = 'Click here to write your text...';
 		}
 	}
+
+	function handlePaste(event) {
+		event.preventDefault();
+
+		// Get plain text from clipboard
+		const clipboardData = event.clipboardData || window.clipboardData;
+		const pastedText = clipboardData.getData('text/plain');
+
+		// Insert the plain text at cursor position
+		const selection = window.getSelection();
+		if (selection.rangeCount > 0) {
+			const range = selection.getRangeAt(0);
+			range.deleteContents();
+			range.insertNode(document.createTextNode(pastedText));
+
+			// Move cursor to end of pasted text
+			range.setStartAfter(range.endContainer);
+			range.collapse(true);
+			selection.removeAllRanges();
+			selection.addRange(range);
+		}
+
+		// Update text state
+		text = event.target.textContent || '';
+	}
 </script>
 
 <div class="h-full flex flex-col max-w-4xl mx-auto">
@@ -108,21 +133,19 @@
 		<Controls bind:settings {previewRef} />
 	</div>
 
-	<div class="flex-1 flex items-center justify-center py-8">
-
-		<div >
-			<div class="flex justify-center">
-				<div
-				bind:this={previewRef}
-					style={previewStyle}
-					class="shadow-lg cursor-text focus:ring-2 focus:ring-blue-500 transition-all"
-					contenteditable="true"
-					oninput={handleInput}
-					onfocus={handleFocus}
-					onblur={handleBlur}
-				>
-					{text || 'Click here to write your text...'}
-				</div>
+	<div class="flex-1 flex items-center  py-8">
+		<div class="flex justify-center w-full">
+			<div
+			bind:this={previewRef}
+				style={previewStyle}
+				class="shadow-lg cursor-text focus:ring-2 focus:ring-blue-500 transition-all w-full "
+				contenteditable="true"
+				oninput={handleInput}
+				onfocus={handleFocus}
+				onblur={handleBlur}
+				onpaste={handlePaste}
+			>
+				{text || 'Click here to write your text...'}
 			</div>
 		</div>
 	</div>
