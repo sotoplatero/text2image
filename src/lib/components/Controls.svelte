@@ -1,5 +1,6 @@
 <script>
 	import { Type, AArrowDown, AArrowUp, Sun, Moon, MoreVertical, Square, LineChart, RulerDimensionLine, SquarePlus, SquareMinus, ListChevronsDownUp, ListChevronsUpDown, Download, Copy } from '@lucide/svelte';
+	import { toPng, toCanvas } from 'html-to-image';
 
 	let { settings = $bindable(), previewRef } = $props();
 
@@ -60,36 +61,7 @@
 		isExporting = true;
 
 		try {
-			const canvas = document.createElement('canvas');
-			const ctx = canvas.getContext('2d');
-
-			// Set canvas size
-			const scale = 2; // For high resolution
-			canvas.width = settings.imageWidth * scale;
-			canvas.height = Math.max(200, calculateTextHeight()) * scale;
-
-			// Scale context for high resolution
-			ctx.scale(scale, scale);
-
-			// Fill background
-			ctx.fillStyle = settings.theme === 'dark' ? '#1f2937' : '#ffffff';
-			ctx.fillRect(0, 0, settings.imageWidth, canvas.height / scale);
-
-			// Set text properties
-			const fontFamilyMap = {
-				'sans-serif': 'Arial, Helvetica, sans-serif',
-				'serif': 'Georgia, Times New Roman, serif',
-				'mono': 'Consolas, Courier New, monospace'
-			};
-			const fontFamily = fontFamilyMap[settings.fontFamily] || 'Arial, sans-serif';
-			ctx.font = `${settings.fontSize}px ${fontFamily}`;
-			ctx.fillStyle = settings.theme === 'dark' ? '#f9fafb' : '#111827';
-			ctx.textBaseline = 'top';
-
-			// Draw text with line wrapping
-			const text = previewRef.textContent || 'Click here to write your text...';
-			drawWrappedText(ctx, text, settings.padding, settings.padding,
-							settings.imageWidth - (settings.padding * 2), settings.lineHeight * settings.fontSize);
+			const canvas = await generateCanvas();
 
 			// Download
 			const link = document.createElement('a');
@@ -107,70 +79,16 @@
 		}
 	}
 
-	function calculateTextHeight() {
-		const text = previewRef?.textContent || '';
+	async function generateCanvas() {
+		if (!previewRef) throw new Error('Preview element not found');
 
-		// Count manual line breaks
-		const paragraphs = text.split('\n');
-		let totalLines = 0;
-
-		// Estimate character width (rough approximation)
-		const avgCharWidth = settings.fontSize * 0.6;
-		const maxCharsPerLine = Math.floor((settings.imageWidth - (settings.padding * 2)) / avgCharWidth);
-
-		paragraphs.forEach(paragraph => {
-			if (paragraph.trim() === '') {
-				totalLines += 1; // Empty line
-			} else {
-				// Calculate wrapped lines for this paragraph
-				const wrappedLines = Math.max(1, Math.ceil(paragraph.length / maxCharsPerLine));
-				totalLines += wrappedLines;
-			}
+		const canvas = await toCanvas(previewRef, {
+			pixelRatio: 2, // High resolution
 		});
 
-		const lineHeight = settings.lineHeight * settings.fontSize;
-		return (totalLines * lineHeight) + (settings.padding * 2) + 20;
+		return canvas;
 	}
 
-	function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
-		// Split by line breaks first to preserve manual line breaks
-		const paragraphs = text.split('\n');
-		let currentY = y;
-
-		paragraphs.forEach((paragraph, paragraphIndex) => {
-			if (paragraph.trim() === '') {
-				// Empty line - just advance Y position
-				currentY += lineHeight;
-				return;
-			}
-
-			const words = paragraph.split(' ');
-			let line = '';
-
-			for (let i = 0; i < words.length; i++) {
-				const testLine = line + words[i] + ' ';
-				const metrics = ctx.measureText(testLine);
-				const testWidth = metrics.width;
-
-				if (testWidth > maxWidth && i > 0) {
-					// Draw current line and start new one
-					ctx.fillText(line.trim(), x, currentY);
-					line = words[i] + ' ';
-					currentY += lineHeight;
-				} else {
-					line = testLine;
-				}
-			}
-
-			// Draw remaining text in line
-			if (line.trim()) {
-				ctx.fillText(line.trim(), x, currentY);
-			}
-
-			// Move to next line for next paragraph
-			currentY += lineHeight;
-		});
-	}
 
 	async function copyToClipboard() {
 		if (!previewRef) return;
@@ -179,36 +97,7 @@
 		copySuccess = false;
 
 		try {
-			const canvas = document.createElement('canvas');
-			const ctx = canvas.getContext('2d');
-
-			// Set canvas size
-			const scale = 2; // For high resolution
-			canvas.width = settings.imageWidth * scale;
-			canvas.height = Math.max(200, calculateTextHeight()) * scale;
-
-			// Scale context for high resolution
-			ctx.scale(scale, scale);
-
-			// Fill background
-			ctx.fillStyle = settings.theme === 'dark' ? '#1f2937' : '#ffffff';
-			ctx.fillRect(0, 0, settings.imageWidth, canvas.height / scale);
-
-			// Set text properties
-			const fontFamilyMap = {
-				'sans-serif': 'Arial, Helvetica, sans-serif',
-				'serif': 'Georgia, Times New Roman, serif',
-				'mono': 'Consolas, Courier New, monospace'
-			};
-			const fontFamily = fontFamilyMap[settings.fontFamily] || 'Arial, sans-serif';
-			ctx.font = `${settings.fontSize}px ${fontFamily}`;
-			ctx.fillStyle = settings.theme === 'dark' ? '#f9fafb' : '#111827';
-			ctx.textBaseline = 'top';
-
-			// Draw text with line wrapping
-			const text = previewRef.textContent || 'Click here to write your text...';
-			drawWrappedText(ctx, text, settings.padding, settings.padding,
-							settings.imageWidth - (settings.padding * 2), settings.lineHeight * settings.fontSize);
+			const canvas = await generateCanvas();
 
 			// Copy to clipboard
 			canvas.toBlob(async (blob) => {

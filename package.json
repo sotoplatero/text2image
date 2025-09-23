@@ -38,7 +38,7 @@
 	"dependencies": {
 		"@lucide/svelte": "^0.544.0",
 		"daisyui": "^5.1.13",
-		"html2canvas": "^1.4.1",
+		"html-to-image": "^1.11.13",
 		"lucide-svelte": "^0.544.0"
 	}
 }

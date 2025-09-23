@@ -104,7 +104,7 @@
 
 		// Get plain text from clipboard
 		const clipboardData = event.clipboardData || window.clipboardData;
-		const pastedText = clipboardData.getData('text/plain');
+		const pastedText = clipboardData.getData('text/plain').trim();
 
 		// Insert the plain text at cursor position
 		const selection = window.getSelection();
@@ -133,7 +133,7 @@
 		<Controls bind:settings {previewRef} />
 	</div>
 
-	<div class="flex-1 flex items-center  py-8">
+	<div class="flex-1 flex items-center ">
 		<div class="flex justify-center w-full">
 			<div
 			bind:this={previewRef}
