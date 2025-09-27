@@ -66,6 +66,7 @@
 					text = update.state.doc.toString();
 				}
 			}),
+			EditorView.lineWrapping,
 			EditorView.theme({
 				'&': {
 					fontSize: `${settings.fontSize}px`,
