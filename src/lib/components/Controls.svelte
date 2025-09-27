@@ -44,6 +44,12 @@
 		showWidthDropdown = false;
 	}
 
+	function handleClickOutside(event) {
+		if (!event.target.closest('.dropdown-container')) {
+			closeAllDropdowns();
+		}
+	}
+
 	let isExporting = $state(false);
 	let copySuccess = $state(false);
 	let showNotification = $state(false);
@@ -234,7 +240,6 @@
 	</div>
 
 
-	<!-- Width Dropdown -->
 
 	</div>
 
