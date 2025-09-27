@@ -7,11 +7,7 @@
 	let { children } = $props();
 </script>
 
-<svelte:head>
-	<link rel="icon" href={favicon} />
-</svelte:head>
-
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+<div class="min-h-screen flex flex-col">
 	<Header />
 
 	<main class="flex-1">

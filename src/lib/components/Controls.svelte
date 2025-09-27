@@ -44,12 +44,6 @@
 		showWidthDropdown = false;
 	}
 
-	function handleClickOutside(event) {
-		if (!event.target.closest('.dropdown-container')) {
-			closeAllDropdowns();
-		}
-	}
-
 	let isExporting = $state(false);
 	let copySuccess = $state(false);
 	let showNotification = $state(false);
@@ -140,13 +134,13 @@
 
 <svelte:window onclick={handleClickOutside} />
 
-<div class="flex items-center justify-between gap-4 p-2 bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600 w-full">
+<div class="flex items-center justify-between gap-4 p-2 rounded border border-gray-300  w-full">
 	<!-- Left side - Editing controls -->
-	<div class="flex items-center gap-2">
+	<div class="flex items-center gap-1">
 		<!-- Font Family Dropdown -->
 	<div class="dropdown">
-		<div tabindex="0" role="button" class="btn btn-square" title="Typography">
-			<Type class="size-6" />
+		<div tabindex="0" role="button" class="btn btn-square btn-sm sm:btn-md" title="Typography">
+			<Type class="size-5" />
 		</div>
 		<ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow" >
 			{#each fontOptions as option}
@@ -167,17 +161,17 @@
 	<div class="join">
 		<button
 			onclick={decreaseFontSize}
-			class="btn btn-square  join-item"
+			class="btn btn-square  join-item btn-sm sm:btn-md"
 			title="Decrease font size"
 		>
-			<AArrowDown class="size-6" />
+			<AArrowDown class="size-5" />
 		</button>
 		<button
 			onclick={increaseFontSize}
-			class="btn btn-square  join-item"
+			class="btn btn-square  join-item btn-sm sm:btn-md"
 			title="Increase font size"
 		>
-			<AArrowUp class="size-6"/>
+			<AArrowUp class="size-5"/>
 		</button>
 	</div>
 
@@ -186,19 +180,19 @@
 	<div class="join">
 		<button
 			onclick={() => settings.theme = 'light'}
-			class="btn btn-square  join-item
+			class="btn btn-square  join-item btn-sm sm:btn-md
 				   {settings.theme === 'light' ? 'btn-active' : ''}"
 			title="Light theme"
 		>
-			<Sun class="size-6" />
+			<Sun class="size-5" />
 		</button>
 		<button
 			onclick={() => settings.theme = 'dark'}
-			class="btn btn-square  join-item
+			class="btn btn-square  join-item btn-sm sm:btn-md
 				   {settings.theme === 'dark' ? 'btn-active' : ''}"
 			title="Dark theme"
 		>
-			<Moon class="size-6" />
+			<Moon class="size-5" />
 		</button>
 	</div>
 
@@ -207,17 +201,17 @@
 	<div class="join">
 		<button
 			onclick={decreasePadding}
-			class="btn btn-square  join-item"
+			class="btn btn-square  join-item btn-sm sm:btn-md"
 			title="Decrease padding"
 		>
-			<SquareMinus class="size-6" />
+			<SquareMinus class="size-5" />
 		</button>
 		<button
 			onclick={increasePadding}
-			class="btn btn-square  join-item"
+			class="btn btn-square  join-item btn-sm sm:btn-md"
 			title="Increase padding"
 		>
-			<SquarePlus class="size-6" />
+			<SquarePlus class="size-5" />
 		</button>
 	</div>
 
@@ -225,47 +219,23 @@
 	<div class="join">
 		<button
 			onclick={decreaseLineHeight}
-			class="btn btn-square  join-item"
+			class="btn btn-square  join-item btn-sm sm:btn-md"
 			title="Decrease line height"
 		>
-			<ListChevronsDownUp class="size-6" />
+			<ListChevronsDownUp class="size-5" />
 		</button>
 		<button
 			onclick={increaseLineHeight}
-			class="btn btn-square  join-item"
+			class="btn btn-square  join-item btn-sm sm:btn-md"
 			title="Increase line height"
 		>
-			<ListChevronsUpDown class="size-6" />
+			<ListChevronsUpDown class="size-5" />
 		</button>
 	</div>
 
 
 	<!-- Width Dropdown -->
-	<div class="relative dropdown-container">
-		<button
-			onclick={() => showWidthDropdown = !showWidthDropdown}
-			class="btn btn-square "
-			title="Width: {settings.imageWidth}px"
-		>
-			<RulerDimensionLine class="size-6" />
-		</button>
-		{#if showWidthDropdown}
-			<div class="absolute top-full left-0 mt-1 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded shadow-lg z-10 p-3">
-				<div class="flex flex-col items-center gap-2">
-					<span class="text-xs text-gray-600 dark:text-gray-300">Image width</span>
-					<input
-						type="range"
-						bind:value={settings.imageWidth}
-						min="400"
-						max="1200"
-						step="50"
-						class="h-20 w-1 bg-gray-300 rounded slider vertical-slider"
-					/>
-					<span class="text-xs text-gray-500 dark:text-gray-400">{settings.imageWidth}px</span>
-				</div>
-			</div>
-		{/if}
-		</div>
+
 	</div>
 
 	<!-- Right side - Export controls -->
@@ -273,19 +243,19 @@
 		<button
 			onclick={downloadImage}
 			disabled={isExporting}
-			class="btn btn-square  btn-primary"
+			class="btn btn-square  btn-primary btn-sm sm:btn-md"
 			title="Download PNG"
 		>
-			<Download class="size-6" />
+			<Download class="size-5" />
 		</button>
 
 		<button
 			onclick={copyToClipboard}
 			disabled={isExporting}
-			class="btn btn-square  {copySuccess ? 'btn-success' : ''} btn-success"
+			class="btn btn-square btn-success btn-sm sm:btn-md"
 			title="Copy to clipboard"
 		>
-			<Copy class="size-6" />
+			<Copy class="size-5" />
 		</button>
 	</div>
 </div>

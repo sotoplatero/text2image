@@ -1,6 +1,17 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import Controls from './Controls.svelte';
+	import { EditorView, minimalSetup } from 'codemirror';
+	import { markdown } from '@codemirror/lang-markdown';
+	import { oneDark } from '@codemirror/theme-one-dark';
+	import { EditorState } from '@codemirror/state';
+	import { history, historyKeymap } from '@codemirror/commands';
+	import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
+	import { keymap, highlightActiveLine, highlightActiveLineGutter, drawSelection, highlightSpecialChars } from '@codemirror/view';
+	import { defaultKeymap, indentWithTab } from '@codemirror/commands';
+	import { bracketMatching, indentOnInput, syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
+	import { closeBrackets } from '@codemirror/autocomplete';
+	import { autocompletion } from '@codemirror/autocomplete';
 
 	let settings = $state({
 		fontFamily: 'sans-serif',
@@ -13,6 +24,94 @@
 
 	let text = $state('Escribe o pega tu texto aquí...');
 	let previewRef;
+	let editorContainer;
+	let editorView = null;
+
+	const fontFamilyMap = {
+		'sans-serif': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+		'serif': 'Georgia, "Times New Roman", Times, serif',
+		'mono': '"SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace'
+	};
+
+
+	function createEditor() {
+		if (!editorContainer) return;
+
+		const fontFamily = fontFamilyMap[settings.fontFamily];
+		const isDark = settings.theme === 'dark';
+
+		const extensions = [
+			// Custom setup without line numbers
+			history(),
+			highlightActiveLineGutter(),
+			highlightSpecialChars(),
+			drawSelection(),
+			EditorState.allowMultipleSelections.of(true),
+			indentOnInput(),
+			bracketMatching(),
+			closeBrackets(),
+			autocompletion(),
+			highlightActiveLine(),
+			highlightSelectionMatches(),
+			keymap.of([
+				...defaultKeymap,
+				...searchKeymap,
+				...historyKeymap,
+				indentWithTab,
+			]),
+			syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+			markdown(),
+			EditorView.updateListener.of((update) => {
+				if (update.docChanged) {
+					text = update.state.doc.toString();
+				}
+			}),
+			EditorView.theme({
+				'&': {
+					fontSize: `${settings.fontSize}px`,
+					fontFamily: fontFamily,
+					lineHeight: settings.lineHeight.toString()
+				},
+				'.cm-editor': {
+					borderRadius: '8px',
+					border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`
+				},
+				'.cm-focused': {
+					outline: 'none',
+					borderColor: '#3b82f6',
+					boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.2)'
+				},
+				'.cm-content': {
+					padding: `${settings.padding}px`,
+					minHeight: '200px',
+					lineHeight: settings.lineHeight.toString()
+				},
+				'.cm-scroller': {
+					fontFamily: fontFamily
+				}
+			})
+		];
+
+		if (isDark) {
+			extensions.push(oneDark);
+		}
+
+		const state = EditorState.create({
+			doc: text === 'Escribe o pega tu texto aquí...' ? '' : text,
+			extensions
+		});
+
+		if (editorView) {
+			editorView.destroy();
+		}
+
+		editorView = new EditorView({
+			state,
+			parent: editorContainer
+		});
+
+		previewRef = editorContainer;
+	}
 
 	onMount(() => {
 		const savedSettings = localStorage.getItem('text2image-settings');
@@ -24,6 +123,14 @@
 		if (savedText) {
 			text = savedText;
 		}
+
+		createEditor();
+	});
+
+	onDestroy(() => {
+		if (editorView) {
+			editorView.destroy();
+		}
 	});
 
 	$effect(() => {
@@ -34,96 +141,28 @@
 		localStorage.setItem('text2image-text', text);
 	});
 
-	const fontFamilyMap = {
-		'sans-serif': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-		'serif': 'Georgia, "Times New Roman", Times, serif',
-		'mono': '"SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace'
-	};
-
-	const previewStyle = $derived(`
-		font-family: ${fontFamilyMap[settings.fontFamily]};
-		font-size: ${settings.fontSize}px;
-		line-height: ${settings.lineHeight};
-		padding: ${settings.padding}px;
-		background-color: ${settings.theme === 'dark' ? '#1f2937' : '#ffffff'} !important;
-		color: ${settings.theme === 'dark' ? '#f9fafb' : '#111827'} !important;
-		border: 1px solid ${settings.theme === 'dark' ? '#374151' : '#e5e7eb'};
-		border-radius: 8px;
-		word-wrap: break-word;
-		white-space: pre-wrap;
-		min-height: 200px;
-		outline: none;
-	`);
-
-	function handleInput(event) {
-		// Store cursor position before updating state
-		const selection = window.getSelection();
-		const range = selection.getRangeAt(0);
-		const offset = range.startOffset;
-		const container = range.startContainer;
-
-		// Update the text state
-		text = event.target.textContent || '';
-
-		// Restore cursor position after next tick
-		setTimeout(() => {
-			try {
-				const newRange = document.createRange();
-				newRange.setStart(container, Math.min(offset, container.textContent?.length || 0));
-				newRange.collapse(true);
-				selection.removeAllRanges();
-				selection.addRange(newRange);
-			} catch (e) {
-				// Fallback: place cursor at end
-				const newRange = document.createRange();
-				newRange.selectNodeContents(event.target);
-				newRange.collapse(false);
-				selection.removeAllRanges();
-				selection.addRange(newRange);
-			}
-		}, 0);
-	}
-
-	function handleFocus(event) {
-		// Only clear placeholder text if it's the default placeholder
-		if (event.target.textContent === 'Click here to write your text...') {
-			event.target.textContent = '';
-			text = '';
+	// Recreate editor when settings change
+	$effect(() => {
+		if (editorContainer && editorView) {
+			createEditor();
 		}
-	}
+	});
 
-	function handleBlur(event) {
-		// Only show placeholder if truly empty
-		if (event.target.textContent.trim() === '') {
-			text = 'Click here to write your text...';
-		}
-	}
 
-	function handlePaste(event) {
-		event.preventDefault();
-
-		// Get plain text from clipboard
-		const clipboardData = event.clipboardData || window.clipboardData;
-		const pastedText = clipboardData.getData('text/plain').trim();
-
-		// Insert the plain text at cursor position
-		const selection = window.getSelection();
-		if (selection.rangeCount > 0) {
-			const range = selection.getRangeAt(0);
-			range.deleteContents();
-			range.insertNode(document.createTextNode(pastedText));
-
-			// Move cursor to end of pasted text
-			range.setStartAfter(range.endContainer);
-			range.collapse(true);
-			selection.removeAllRanges();
-			selection.addRange(range);
-		}
-
-		// Update text state
-		text = event.target.textContent || '';
-	}
 </script>
+
+<style>
+	.editor-container {
+		width: 100%;
+		box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+		border-radius: 8px;
+	}
+
+	/* Global CodeMirror overrides */
+	:global(.cm-editor.cm-focused) {
+		outline: none !important;
+	}
+</style>
 
 <div class="h-full flex flex-col max-w-4xl mx-auto">
 
@@ -133,20 +172,9 @@
 		<Controls bind:settings {previewRef} />
 	</div>
 
-	<div class="flex-1 flex items-center ">
+	<div class="flex-1 flex items-center">
 		<div class="flex justify-center w-full">
-			<div
-			bind:this={previewRef}
-				style={previewStyle}
-				class="shadow-lg cursor-text focus:ring-2 focus:ring-blue-500 transition-all w-full "
-				contenteditable="true"
-				oninput={handleInput}
-				onfocus={handleFocus}
-				onblur={handleBlur}
-				onpaste={handlePaste}
-			>
-				{text || 'Click here to write your text...'}
-			</div>
+			<div class="editor-container" bind:this={editorContainer}></div>
 		</div>
 	</div>
 
