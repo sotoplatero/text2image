@@ -169,7 +169,7 @@
 
 	<!-- Main Content - Centered WYSIWYG Editor -->
 		
-	<div class="sticky top-0  flex justify-center py-4">
+	<div class="sticky top-0  flex justify-center py-4 z-50">
 		<Controls bind:settings {previewRef} />
 	</div>
 

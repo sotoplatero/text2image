@@ -140,7 +140,7 @@
 
 <svelte:window onclick={handleClickOutside} />
 
-<div class="flex items-center justify-between gap-4 p-2 rounded border border-gray-300  w-full">
+<div class="flex items-center justify-between gap-2  rounded border-gray-300  w-full">
 	<!-- Left side - Editing controls -->
 	<div class="flex items-center gap-1">
 		<!-- Font Family Dropdown -->
@@ -148,7 +148,7 @@
 		<div tabindex="0" role="button" class="btn btn-square btn-sm sm:btn-md" title="Typography">
 			<Type class="size-5" />
 		</div>
-		<ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow" >
+		<ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box w-52 p-2 shadow" >
 			{#each fontOptions as option}
 				<li>
 					<button
@@ -183,23 +183,26 @@
 
 
 	<!-- Theme Toggle -->
-	<div class="join">
-		<button
-			onclick={() => settings.theme = 'light'}
-			class="btn btn-square  join-item btn-sm sm:btn-md
-				   {settings.theme === 'light' ? 'btn-active' : ''}"
-			title="Light theme"
-		>
-			<Sun class="size-5" />
-		</button>
-		<button
-			onclick={() => settings.theme = 'dark'}
-			class="btn btn-square  join-item btn-sm sm:btn-md
-				   {settings.theme === 'dark' ? 'btn-active' : ''}"
-			title="Dark theme"
-		>
-			<Moon class="size-5" />
-		</button>
+	<div class="">
+		{#if settings.theme === 'light'}
+			<button
+				onclick={() => settings.theme = 'dark'}
+				class="btn btn-square btn-sm sm:btn-md
+					{settings.theme === 'dark' ? 'btn-active' : ''}"
+				title="Dark theme"
+			>
+				<Moon class="size-5" />
+			</button>
+		{:else}
+			<button
+				onclick={() => settings.theme = 'light'}
+				class="btn btn-square btn-sm sm:btn-md
+					{settings.theme === 'light' ? 'btn-active' : ''}"
+				title="Light theme"
+			>
+				<Sun class="size-5" />
+			</button>
+		{/if}
 	</div>
 
 
@@ -244,11 +247,11 @@
 	</div>
 
 	<!-- Right side - Export controls -->
-	<div class="flex items-center gap-2">
+	<div class="flex items-center gap-1">
 		<button
 			onclick={downloadImage}
 			disabled={isExporting}
-			class="btn btn-square  btn-primary btn-sm sm:btn-md"
+			class="btn btn-square btn-sm sm:btn-md"
 			title="Download PNG"
 		>
 			<Download class="size-5" />
@@ -257,7 +260,7 @@
 		<button
 			onclick={copyToClipboard}
 			disabled={isExporting}
-			class="btn btn-square btn-success btn-sm sm:btn-md"
+			class="btn btn-square btn-neutral btn-sm sm:btn-md"
 			title="Copy to clipboard"
 		>
 			<Copy class="size-5" />
