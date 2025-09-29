@@ -4,7 +4,7 @@
 	import { EditorView, minimalSetup } from 'codemirror';
 	import { markdown } from '@codemirror/lang-markdown';
 	import { oneDark } from '@codemirror/theme-one-dark';
-	import { EditorState } from '@codemirror/state';
+	import { EditorState, StateEffect } from '@codemirror/state';
 	import { history, historyKeymap } from '@codemirror/commands';
 	import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 	import { keymap, highlightActiveLine, highlightActiveLineGutter, drawSelection, highlightSpecialChars } from '@codemirror/view';
@@ -142,10 +142,71 @@
 		localStorage.setItem('text2image-text', text);
 	});
 
-	// Recreate editor when settings change
+	// Update editor configuration without losing focus
 	$effect(() => {
-		if (editorContainer && editorView) {
-			createEditor();
+		if (editorView && settings) {
+			const fontFamily = fontFamilyMap[settings.fontFamily];
+			const isDark = settings.theme === 'dark';
+
+			const newExtensions = [
+				history(),
+				highlightActiveLineGutter(),
+				highlightSpecialChars(),
+				drawSelection(),
+				EditorState.allowMultipleSelections.of(true),
+				indentOnInput(),
+				bracketMatching(),
+				closeBrackets(),
+				autocompletion(),
+				highlightActiveLine(),
+				highlightSelectionMatches(),
+				keymap.of([
+					...defaultKeymap,
+					...searchKeymap,
+					...historyKeymap,
+					indentWithTab,
+				]),
+				syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+				markdown(),
+				EditorView.updateListener.of((update) => {
+					if (update.docChanged) {
+						text = update.state.doc.toString();
+					}
+				}),
+				EditorView.lineWrapping,
+				EditorView.theme({
+					'&': {
+						fontSize: `${settings.fontSize}px`,
+						fontFamily: fontFamily,
+						lineHeight: settings.lineHeight.toString()
+					},
+					'.cm-editor': {
+						borderRadius: '8px',
+						border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`
+					},
+					'.cm-focused': {
+						outline: 'none',
+						borderColor: '#3b82f6',
+						boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.2)'
+					},
+					'.cm-content': {
+						padding: `${settings.padding}px`,
+						minHeight: '200px',
+						lineHeight: settings.lineHeight.toString()
+					},
+					'.cm-scroller': {
+						fontFamily: fontFamily
+					}
+				})
+			];
+
+			if (isDark) {
+				newExtensions.push(oneDark);
+			}
+
+			editorView.dispatch({
+				effects: StateEffect.reconfigure.of(newExtensions)
+			});
 		}
 	});
 
