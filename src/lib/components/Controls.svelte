@@ -182,28 +182,7 @@
 	</div>
 
 
-	<!-- Theme Toggle -->
-	<div class="">
-		{#if settings.theme === 'light'}
-			<button
-				onclick={() => settings.theme = 'dark'}
-				class="btn btn-square btn-sm sm:btn-md
-					{settings.theme === 'dark' ? 'btn-active' : ''}"
-				title="Dark theme"
-			>
-				<Moon class="size-5" />
-			</button>
-		{:else}
-			<button
-				onclick={() => settings.theme = 'light'}
-				class="btn btn-square btn-sm sm:btn-md
-					{settings.theme === 'light' ? 'btn-active' : ''}"
-				title="Light theme"
-			>
-				<Sun class="size-5" />
-			</button>
-		{/if}
-	</div>
+
 
 
 	<!-- Padding Controls -->
@@ -242,6 +221,28 @@
 		</button>
 	</div>
 
+	<!-- Theme Toggle -->
+	<div class="">
+		{#if settings.theme === 'light'}
+			<button
+				onclick={() => settings.theme = 'dark'}
+				class="btn btn-square btn-sm sm:btn-md
+					{settings.theme === 'dark' ? 'btn-active' : ''}"
+				title="Dark theme"
+			>
+				<Moon class="size-5" />
+			</button>
+		{:else}
+			<button
+				onclick={() => settings.theme = 'light'}
+				class="btn btn-square btn-sm sm:btn-md
+					{settings.theme === 'light' ? 'btn-active' : ''}"
+				title="Light theme"
+			>
+				<Sun class="size-5" />
+			</button>
+		{/if}
+	</div>	
 
 
 	</div>
